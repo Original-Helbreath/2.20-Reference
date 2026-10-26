@@ -17,6 +17,8 @@ Reference material for Helbreath 2.20: precompiled binaries, kept as found and n
   `StrTok.lib` are the game's own and need their sources found or recreated (see the project board).
 - `decompile/launcher/` - which 2.02 exe the client source builds (`HelGame.exe`), and a decompile of the
   `Helbreath.exe` FTP auto-update launcher (protocol, files, how it starts the game) with cleaned pseudo-C.
+- `decompile/search-dll/` - search.dll, the client's anti-cheat process check: what both builds do, with Ghidra decompiles. The client no longer loads it.
+- `decompile/cint/` - Cint.lib (`CInt`, the memory-obfuscated int): what it did, with the disassembly. The client now uses plain `int`; real protection is the server owning and validating values.
 - `as-found/client-2.02/Readme.htm` - the readme from the retail 2.02 install.
 - `as-found/game-server-import/` - files from the 2.20 server import that no program reads: runtime logs from 2000
   (`Events.log`, `ItemEvents.log`, `Level-Chart.log`, `LogEvents.log`, `TEST.LOG`, `ascII.txt`) and a 2.03 `GateServer.cfg`
