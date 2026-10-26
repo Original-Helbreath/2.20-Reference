@@ -1,0 +1,87 @@
+CREATE DATABASE [mainlogin] ON PRIMARY
+(
+NAME  = N'mainlogin',
+FILENAME = N'C:\Archivos de Programa\Microsoft SQL Server\MSSQL\data\mainlogin.mdf',
+size= 10,
+FILEGROWTH = 10%
+)
+GO
+
+use mainlogin
+GO
+
+ALTER DATABASE [mainlogin] ADD FILEGROUP [Second] 
+go
+
+ALTER DATABASE [mainlogin] ADD FILE
+(
+NAME  = N'mainlogin_idx',
+FILENAME = N'C:\Archivos de Programa\Microsoft SQL Server\MSSQL\data\mainlogin_idx.mdf',
+size= 10,
+FILEGROWTH = 10%
+) TO FILEGROUP [Second] 
+go
+
+
+CREATE TABLE ACCOUNT_T        -- Account info. Table
+( 
+cAccountID NCHAR(10) NOT NULL, -- Account ID           1
+cPasswd  NCHAR(10),  -- Password                     2
+iAccountID INT NOT NULL,  -- Account Unique Number  3
+cLoginIpAddress NCHAR(20),              -- Login Ip Address     8 -> 4
+       IsGMAccount     BIT,                 -- GM Account ID                9 -> 5
+CreateDate SMALLDATETIME ,  -- Create Date    4 -> 6
+LoginDate SMALLDATETIME ,  -- LogIn  Date    7
+LogoutDate SMALLDATETIME ,  -- LogOut Date    8
+BlockDate SMALLDATETIME ,  -- Account Block Date  9
+
+-- personal information
+-- cRealName NCHAR(10),  -- Real Name            10
+cRealName NCHAR(30),  -- Real Name            10
+cSSN  NCHAR(20),  -- Person Number       11
+-- cEmail  NCHAR(50), -- E-MAIL            12
+cEmail  NCHAR(60),  -- E-MAIL            12 -- for japan
+cCharRecord  NCHAR(100),  -- Character Document        13
+cQuiz  NCHAR(45),  -- QUIZ                      14
+cAnswer  NCHAR(20),  -- ANSWER                    15
+ValidDate SMALLDATETIME ,  -- Account Vaild Date   16
+iValidTime  INT,   -- Account Vaild Time   17
+
+CONSTRAINT PK_ACCOUNT_T PRIMARY KEY (cAccountID),
+CONSTRAINT UniqlACCOUNT_ID UNIQUE (iAccountID)
+)
+GO
+
+CREATE TABLE WS1_T                 -- First World Server Characters Info Table
+(
+iAccountID  INT NOT NULL, -- Account ID
+cCharName  NCHAR(10),  -- Character Name
+
+CONSTRAINT  FK_WS1_T FOREIGN KEY (
+ iAccountID
+) REFERENCES [ACCOUNT_T] (
+ iAccountID
+) ON DELETE CASCADE ON UPDATE CASCADE
+
+)
+
+GO
+
+CREATE TABLE WS2_T                 -- Second World Server Characters Info Table
+(
+iAccountID  INT NOT NULL, -- Account Unique Number
+cCharName  NCHAR(10),  -- Character Name
+
+CONSTRAINT  FK_WS2_T FOREIGN KEY (
+iAccountID
+) REFERENCES [ACCOUNT_T] (
+iAccountID
+) ON DELETE CASCADE ON UPDATE CASCADE
+ 
+)
+go
+
+CREATE NONCLUSTERED INDEX WS1_IDX
+ON WS1_T(iAccountID)
+WITH FILLFACTOR = 80,STATISTICS_NORECOMPUTE on SECOND
+go
