@@ -15,6 +15,8 @@ Reference material for Helbreath 2.20: precompiled binaries, kept as found and n
   Most are Windows / DirectX SDK import libraries (`DDRAW`, `DINPUT`, `DSOUND`, `DXGUID`, `WINMM`, `WS2_32`, `WSOCK32`,
   `IMM32`) that a build should take from a downloadable SDK instead; `Cint.lib`, `DesDll.lib`, `search.lib` and
   `StrTok.lib` are the game's own and need their sources found or recreated (see the project board).
+- `decompile/launcher/` - which 2.02 exe the client source builds (`HelGame.exe`), and a decompile of the
+  `Helbreath.exe` FTP auto-update launcher (protocol, files, how it starts the game) with cleaned pseudo-C.
 - `as-found/client-2.02/Readme.htm` - the readme from the retail 2.02 install.
 - `as-found/game-server-import/` - files from the 2.20 server import that no program reads: runtime logs from 2000
   (`Events.log`, `ItemEvents.log`, `Level-Chart.log`, `LogEvents.log`, `TEST.LOG`, `ascII.txt`) and a 2.03 `GateServer.cfg`
