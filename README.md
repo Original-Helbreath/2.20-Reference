@@ -10,6 +10,7 @@ Reference material for Helbreath 2.20: precompiled binaries, kept as found and n
   unpatched. No source exists for these; they are what the decompile in the log-server Source repos was made from.
 - `binaries/client-source-dlls/` - prebuilt DLLs that shipped inside the 2.20 client source tree (`ClientLogon.dll`,
   `DDRAW7.DLL`, `DesDll.dll`, `Dib16.dll`, `MMXCPY.DLL`, `Offs.dll`, `search.dll`), with no source of their own.
+  Its `README.md` says what each appears to be and that the 2.20 client uses none of them.
 
 - `libraries/client-source/`, `libraries/gate-source/` - prebuilt link libraries (`.lib`) that sat in the source trees.
   Most are Windows / DirectX SDK import libraries (`DDRAW`, `DINPUT`, `DSOUND`, `DXGUID`, `WINMM`, `WS2_32`, `WSOCK32`,
