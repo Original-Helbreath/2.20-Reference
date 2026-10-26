@@ -28,6 +28,11 @@ Reference material for Helbreath 2.20: precompiled binaries, kept as found and n
 - `as-found/game-server-import/` - files from the 2.20 server import that no program reads: runtime logs from 2000
   (`Events.log`, `ItemEvents.log`, `Level-Chart.log`, `LogEvents.log`, `TEST.LOG`, `ascII.txt`) and a 2.03 `GateServer.cfg`
   that sat in the game server folder.
+- `as-found/servers/` - the eight legacy server repos, copied whole when the servers were replaced by the
+  two-binary recreation (`2.20-Login-Server-*`, `2.20-World-Server-*`): `2.20-Game-Server-*`, `2.20-Gate-Server-*`,
+  `2.20-Main-Log-Server-*` and `2.20-World-Log-Server-*`, each `-Files` and `-Source`, taken from their `development`
+  branch. Only `2.20-Game-Server-Files` differs from its `original` branch: it adds `WarSchedule.cfg` and `notice.txt`,
+  recreated for continuity. The GitHub repos are archived read-only and keep their full history.
 
 The Files repos hold only configuration and data each program reads; anything compiled, or kept only as evidence, lives here.
 

@@ -1,0 +1,2 @@
+notify_msg = Welcome to Helbreath.
+notify_msg = The crusade begins every Saturday at 22:30.
