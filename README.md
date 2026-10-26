@@ -22,7 +22,7 @@ Reference material for Helbreath 2.20: precompiled binaries, kept as found and n
 - `decompile/cint/` - Cint.lib (`CInt`, the memory-obfuscated int): what it did, with the disassembly. The client now uses plain `int`; real protection is the server owning and validating values.
 - `as-found/client-2.02/Readme.htm` - the readme from the retail 2.02 install.
 - `as-found/unused-sprites/` - client sprite paks the 2.20 game never shows (`MHelm2`, `MHelm3`, `MHelm5`, and the
-  empty `WHelm2`, `WHelm3`, `WHelm5`), with their sheets extracted and a note on what each is and why it is unused.
+  empty `WHelm2`, `WHelm3`, `WHelm5`, and `MPTWK`), with their sheets extracted and a note on what each is and why it is unused.
 - `as-found/sql-3.51/` - SQL Server scripts of the database-backed log servers (3.51 era): the account database
   schema, the character database's index script, and the crusade / Heldenian tables and procedures.
 - `as-found/game-server-import/` - files from the 2.20 server import that no program reads: runtime logs from 2000

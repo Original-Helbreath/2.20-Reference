@@ -11,6 +11,7 @@ frame JSON per sheet, made with `pak/pak_tool.py` from [Tools](https://github.co
 | `MHelm3.pak` | Male helm type 3: the Full Helm shape (overlap 0.82) with different surface shading, in a dull grey-green metal. | Loaded (`Game.cpp:4076`), but no 2.03 / 2.20 / 3.51 item has helm type 3. The later 3.82 forum server reused type 3 for two male-only helms (Merien Helm M, Drow Helm M). |
 | `MHelm5.pak` | Male helm sheets numbered 5. | The 2.20 client never loads it; type 5 is drawn from `NMHelm1` (`Game.cpp:4078`). |
 | `WHelm2.pak`, `WHelm3.pak`, `WHelm5.pak` | Empty files (0 bytes), the female counterparts of the three above. Nothing to extract. | Never loaded (`Game.cpp:4165-4170` loads only `WHelm1`, `WHelm4` and `NWHelm1-4`). No female item ever needed them; they look like placeholders that kept the numbering aligned. |
+| `MPTWK.PAK` | 8 sheets of small grey cup-shaped icons (each under 100x10 px), drawn on a white key with light anti-aliased edges. Dated 1999-01-21 in the retail install, older than the rest of the sprites. | Never loaded: the name appears nowhere in the 2.20 client source nor in the 2.02 `HelGame.exe`. Not to be confused with `Mpt.pak`, which is loaded (`Game.cpp:3938`). |
 
 Removing these from the client is safe: `CGame::MakeSprite` (`Game.cpp:3548`) skips a pak it cannot open.
 
