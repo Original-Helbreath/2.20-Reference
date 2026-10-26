@@ -22,7 +22,7 @@ typedef struct {
 
 static int g_bCancel;          /* 0x43b0f0 - read by IsCancelled(), never written: always 0 */
 
-/* 0x4010b0  CMfcftpApp::InitInstance */
+/* 0x4010b0  CMfcftpApp::InitInstance (no function defined in Ghidra; reconstructed from capstone) */
 BOOL CMfcftpApp::InitInstance()
 {
     if (!AfxSocketInit(NULL)) {                 /* 0x42abc9 */
@@ -126,7 +126,8 @@ UINT UpdateThread(LPVOID pParam)
     iStart = dlg->MessageBox(strErr, strCaption, MB_OKCANCEL);
 ok:
 cleanup:
-    InternetCloseHandle(hNet);                  /* note: closes handles a second time on error paths */
+    InternetCloseHandle(hNet);                  /* handles get closed twice: on error paths, and on success
+                                                   (ProcessUpdateList closed hFtp at 0x402011) */
 launch:
     if (hFtp) InternetCloseHandle(hFtp);
     remove("update.lst_");                      /* 0x41eadc */
@@ -158,7 +159,7 @@ int ProcessUpdateList(HINTERNET hFtp, const char *pszList, CMfcftpDlg *dlg)
     char szProgress[400], szStatus[256], szDir[200], buf[4096];
 
     if ((fdList = _open(pszList, _O_RDONLY | _O_BINARY)) < 0) return ERR_LIST;
-    if ((fdTmp = _open("update.tmp", _O_RDWR | _O_CREAT | _O_TRUNC | _O_BINARY, 0666)) < 0) {
+    if ((fdTmp = _open("update.tmp", _O_WRONLY | _O_CREAT | _O_TRUNC | _O_BINARY, 0666)) < 0) {
         _close(fdList); return ERR_LIST;
     }
     /* pass 1: copy every record whose local file is missing or differs into update.tmp */
@@ -171,7 +172,7 @@ int ProcessUpdateList(HINTERNET hFtp, const char *pszList, CMfcftpDlg *dlg)
         nFiles++;
     }
     _close(fdList); _close(fdTmp);
-    if (nFiles == 0) return 0;                  /* already up to date */
+    if (nFiles == 0) return 0;                  /* already up to date; empty update.tmp is NOT removed */
 
     dlg->UpdateData(TRUE);
     if ((uTotal & 0xfff00000) > 0xc800000) {    /* more than ~200 MB to fetch */
@@ -197,14 +198,17 @@ int ProcessUpdateList(HINTERNET hFtp, const char *pszList, CMfcftpDlg *dlg)
 
         HINTERNET hFile = FtpOpenFileA(hFtp, rec.szGzName, GENERIC_READ, FTP_TRANSFER_TYPE_BINARY, 0);
         if (hFile == NULL ||
-            (fdOut = _open(rec.szGzName, _O_RDWR | _O_CREAT | _O_TRUNC | _O_BINARY, 0666)) < 0)
-            return ERR_DOWNLOAD;
+            (fdOut = _open(rec.szGzName, _O_WRONLY | _O_CREAT | _O_TRUNC | _O_BINARY, 0666)) < 0)
+            return ERR_DOWNLOAD;                /* update.tmp is left behind on this path */
+        unsigned uSoFar = uDone;                /* EBX at 0x401f27 */
         for (;;) {
             DWORD dwRead = 0;
             if (g_bCancel == 1) { iFailed = -1; break; }
             BOOL ok = InternetReadFile(hFile, buf, sizeof(buf), &dwRead);
             if (ok == TRUE && dwRead == 0) break;                    /* EOF */
-            SendMessageA(dlg->m_progress.m_hWnd, PBM_SETPOS, uDone * 100 / uTotal, 0);
+            uSoFar += dwRead;
+            /* 0x401f27-0x401f34: 32-bit uSoFar*100, wraps once uSoFar exceeds ~42 MB */
+            SendMessageA(dlg->m_progress.m_hWnd, PBM_SETPOS, uSoFar * 100 / uTotal, 0);
             dlg->UpdateData(FALSE);
             _write(fdOut, buf, dwRead);         /* a failed read writes 0 bytes and retries forever */
         }
@@ -224,7 +228,7 @@ int ProcessUpdateList(HINTERNET hFtp, const char *pszList, CMfcftpDlg *dlg)
     return 0;
 }
 
-/* 0x402040  0 if the local file matches the record (same mtime to the second and same size), else -1 */
+/* 0x402040  0 if the local file matches the record (same mtime to the minute and same size), else -1 */
 int IsFileCurrent(const UPDATE_ENTRY *rec)
 {
     CFileStatus st;
@@ -263,7 +267,7 @@ int OpenTargetFile(const char *path)
     struct _utimbuf ut;
     _splitpath(path, NULL, szDir, NULL, NULL);
     _mkdir(szDir);
-    int fd = _open(path, _O_RDWR | _O_CREAT | _O_TRUNC | _O_BINARY, 0666);
+    int fd = _open(path, _O_WRONLY | _O_CREAT | _O_TRUNC | _O_BINARY, 0666);
     if (fd < 0) { _rmdir(szDir); return fd; }                      /* 0x41eb13 */
     ut.actime = mktime(&t); ut.modtime = mktime(&t);
     _futime(fd, &ut);                                               /* 0x4108af */
@@ -277,7 +281,7 @@ void SetFdTime(int fd, time_t t) { struct _utimbuf ut = { t, t }; _futime(fd, &u
 int FtpDownload(HINTERNET hFtp, const char *pszRemote, const char *pszLocal)
 {
     char buf[4096]; DWORD dwRead; int r = 0;
-    int fd = _open(pszLocal, _O_RDWR | _O_CREAT | _O_TRUNC | _O_BINARY, 0666);
+    int fd = _open(pszLocal, _O_WRONLY | _O_CREAT | _O_TRUNC | _O_BINARY, 0666);
     if (fd < 0) return -1;
     HINTERNET h = FtpOpenFileA(hFtp, pszRemote, GENERIC_READ, FTP_TRANSFER_TYPE_BINARY, 0);
     if (h == NULL) return -1;
@@ -306,4 +310,5 @@ int GunzipFile(const char *gz, const char *out)
 
 /* 0x402620  same, on descriptors: gzdopen(dup(fdGz)), fdopen(dup(fdOut)) */
 /* 0x402510  GzCopy: gzread 0x2000-byte chunks and fwrite them; -1 on short write, 0 otherwise
- *           (a gzread error ends the copy with 0, i.e. it is not reported). */
+ *           a gzread error (JL 0x40257c) returns the negative code from gzerror (0x402ec0),
+ *           which ExtractEntry turns into ERR_EXTRACT. */

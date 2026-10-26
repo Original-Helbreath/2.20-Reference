@@ -17,8 +17,10 @@ Static analysis only; no binary was executed. Tags: [V] verified (read from the 
 
 ## Identification verdict
 
-**`HelGame.exe` is the game client that `sources/client-2.20` builds. `Helbreath.exe` is a separate
-auto-update launcher (internal name `mfcftp`) that has no source in our trees.**
+**`HelGame.exe` is the game client that `sources/client-2.20` builds [I]. `Helbreath.exe` is a separate
+auto-update launcher (internal name `mfcftp`) that has no source in our trees.** The build target is
+inferred: the source has no project file and never names `HelGame.exe`; the string and import matches
+below are [V].
 
 | Evidence | HelGame.exe 2.02 | Helbreath.exe 2.02 |
 |---|---|---|
@@ -32,8 +34,10 @@ build is older than the 2.20 source in at least that string (also `DEF_LOWERVERS
 
 **2.23 HelGame.exe** (2003-04-15 06:33:22 UTC) is packed [V]: unnamed sections, an empty `.adata` section,
 entry point at the start of the first section, and one import per DLL (kernel32 only `LoadLibraryA`/
-`GetProcAddress`/`GetModuleHandleA`). The `.adata` section name is the ASPack signature [I]. Only
-`search.dll` is readable as a plain string [V]; the mutex, `login.cfg` and every message string are hidden,
+`GetProcAddress`/`GetModuleHandleA`). A later analysis identified the protector as ASProtect 1.2x
+(entry bytes `68 01 20 56 00 E8 01 00 00 00 C3 C3`, the ASPack 2.12 loader reused as the outer layer,
+polymorphic decryption at 0x562057), not plain ASPack [I]. Apart from the import names (`search.dll`
+among them) no application strings are readable [V]; the mutex, `login.cfg` and every message string are hidden,
 so a string comparison with the 2.20 source is not possible without unpacking. It still imports `search.dll`
 ordinal 1 and the same DLL set (DDRAW, DINPUT, DSOUND, IMM32, WINMM, WS2_32) [V], so it is the same program
 family; how far it diverges from the 2.20 source is [U].
@@ -53,7 +57,10 @@ user starts; the game itself never contacts the update server [I].
 3. `UpdateThread` 0x4016d0 does the whole update, launches the game, and ends the dialog with
    `EndDialog(IDOK)` (0x4024f0) [V].
 
-There is no Cancel path: the cancel flag 0x43b0f0 is only ever read (0x4024e0) [V], so it is always 0.
+There is no in-app cancel: the cancel flag 0x43b0f0 is only ever read (0x4024e0) [V], so it is always 0.
+Closing the window runs the stock wizard OnClose/OnCancel (0x401650/0x401670); `CanExit` 0x401690 returns 1
+when `m_pAutoProxy` (+0xa0) is 0, so the dialog ends, the process exits mid-update and the game is not
+launched [I].
 
 ## Update/patch protocol
 
@@ -90,20 +97,26 @@ All transfers are FTP through WinINet [V]:
 - No file deletion list, no self-update of `Helbreath.exe` beyond what the list may overwrite [I] (a list
   entry for `Helbreath.exe` would fail to open while running [I]).
 
-Error results and messages (every one ends "Would you like to start game?" with OK/Cancel) [V]:
+Error results and messages (OK/Cancel boxes; all but the `InternetOpen` one end "Would you like to start
+game?") [V]:
 -1002 list could not be opened ("making download list"), -1001 too big, -1003 download failed,
 -1004 extract failed ("check you have enough disk space"), connect failure, `update.lst_` download failure,
-`InternetOpen` failure (English + Korean text).
+`InternetOpen` failure (string 0x4363cc: an English line, then the question in Korean, CP949 "run the
+client?", not "start game?").
 
 Robustness notes [V from disassembly]: a failed `InternetReadFile` writes zero bytes and retries forever
 (only TRUE with 0 bytes ends the loop, 0x402494 and the same pattern in 0x401bd0); the return of the
-`update.lst` gunzip is ignored; on error paths the internet handles are closed twice.
+`update.lst` gunzip is ignored; the FTP handle is closed twice on error paths and also on success
+(0x402011 inside 0x401bd0, then 0x4019f4); the progress bar uses 32-bit `bytes*100` (0x401f27-0x401f34),
+which wraps once the running byte count passes about 42 MB.
 
 ## Files and registry
 
 - Reads/writes in the current directory: `update.lst_`, `update.lst`, `update.tmp`, each server gz file
   (temporary), and every game file named in the list, creating directories with `_mkdir` [V]. All three
-  control files are deleted at the end [V].
+  `update.lst_` and `update.lst` are deleted at the end [V]. `update.tmp` is deleted only after a pass-2 run
+  or an extract failure: it stays (empty) on a normal up-to-date run (0x401cd1 JZ 0x40202c skips the remove)
+  and stays on a download failure (0x401fc4) [V].
 - No `LOGIN.CFG`, no INI, no `WritePrivateProfileString` call in app code (the import is MFC's) [V for app
   code 0x401000-0x402700].
 - No registry use: no `SetRegistryKey` in `InitInstance`; the ADVAPI32 imports are MFC's registration
@@ -126,13 +139,16 @@ retail shortcut used is U].
   reader only.
 - [U] Whether other locales shipped this launcher with a different directory (only `patch_en` is present).
 - [U] Which program uses the shipped `zlib.dll` - neither HelGame.exe 2.02 nor this launcher imports it.
-- [U] 2.23 HelGame.exe vs 2.20 source: needs unpacking (ASPack [I]) before any string or code comparison.
+- [U] 2.23 HelGame.exe vs 2.20 source: needs unpacking (ASProtect 1.2x [I]) before any string or code comparison.
 - [U] Whether a 2.23 launcher existed; only HelGame.exe ships in the 2.23 patch.
 
 ## Pseudo-C and skipped library code
 
-`pseudo-c/launcher.c` holds every app function in 0x4010b0-0x402690 (InitInstance, dialog, thread, list
-processing, FTP and gzip helpers), cleaned and renamed.
+`pseudo-c/launcher.c` holds the app's own logic in 0x4010b0-0x402690 (InitInstance, dialog, thread, list
+processing, FTP and gzip helpers), cleaned and renamed. Not every function has a body there: the dialog
+ctor 0x4011f0, the dtors 0x4012b0-0x4012f0 and the one-line wrappers 0x4023b0, 0x4023c0, 0x4024e0 and
+0x4024f0 are only described or inlined at their call sites, and 0x4010b0 is not a defined function in
+Ghidra (rebuilt from disassembly).
 
 Skipped, with how they were recognised:
 
