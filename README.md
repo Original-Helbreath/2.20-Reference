@@ -1,0 +1,38 @@
+# 2.20-Reference
+
+Reference material for Helbreath 2.20: precompiled binaries, kept as found and never run from here.
+
+## Contents
+
+- `binaries/client-2.02/` - `Helbreath.exe`, `HelGame.exe`, `Uninstal.exe`, `search.dll`, `zlib.dll` from the retail 2.02 install.
+- `binaries/client-2.23/` - `HelGame.exe` from the official 2.23 patch.
+- `binaries/main-log-server/`, `binaries/world-log-server/` - the official 2002-era `MainServer.exe` and `WorldServer.exe`,
+  unpatched. No source exists for these; they are what the decompile in the log-server Source repos was made from.
+- `binaries/client-source-dlls/` - prebuilt DLLs that shipped inside the 2.20 client source tree (`ClientLogon.dll`,
+  `DDRAW7.DLL`, `DesDll.dll`, `Dib16.dll`, `MMXCPY.DLL`, `Offs.dll`, `search.dll`), with no source of their own.
+
+- `libraries/client-source/`, `libraries/gate-source/` - prebuilt link libraries (`.lib`) that sat in the source trees.
+  Most are Windows / DirectX SDK import libraries (`DDRAW`, `DINPUT`, `DSOUND`, `DXGUID`, `WINMM`, `WS2_32`, `WSOCK32`,
+  `IMM32`) that a build should take from a downloadable SDK instead; `Cint.lib`, `DesDll.lib`, `search.lib` and
+  `StrTok.lib` are the game's own and need their sources found or recreated (see the project board).
+- `as-found/client-2.02/Readme.htm` - the readme from the retail 2.02 install.
+- `as-found/game-server-import/` - files from the 2.20 server import that no program reads: runtime logs from 2000
+  (`Events.log`, `ItemEvents.log`, `Level-Chart.log`, `LogEvents.log`, `TEST.LOG`, `ascII.txt`) and a 2.03 `GateServer.cfg`
+  that sat in the game server folder.
+
+The Files repos hold only configuration and data each program reads; anything compiled, or kept only as evidence, lives here.
+
+## Branches
+
+| Branch | Purpose |
+|---|---|
+| `original` | The files exactly as found. Read-only by convention: never commit here. (It is not protected yet, because the org is on GitHub Free and its repos are private.) |
+| `development` | Integration branch. Work happens in feature branches, which merge into `development`. |
+| `stable` | Default branch. `development` is merged here once it is stable. |
+
+## Project
+
+Part of [Original Helbreath](https://github.com/Original-Helbreath): keeping the original 1999-2005 Siementech Helbreath alive.
+Repos are named `<version>-<Part>`; other versions follow the same pattern.
+Issues are tracked on the [project board](https://github.com/Original-Helbreath/projects/1). The analysis behind everything is in
+[2.20-Documentation](https://github.com/Original-Helbreath/2.20-Documentation).
