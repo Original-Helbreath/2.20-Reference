@@ -22,17 +22,11 @@ Reference material for Helbreath 2.20: precompiled binaries, kept as found and n
 
 The Files repos hold only configuration and data each program reads; anything compiled, or kept only as evidence, lives here.
 
-## Branches
-
-| Branch | Purpose |
-|---|---|
-| `original` | The files exactly as found. Read-only by convention: never commit here. (It is not protected yet, because the org is on GitHub Free and its repos are private.) |
-| `development` | Integration branch. Work happens in feature branches, which merge into `development`. |
-| `stable` | Default branch. `development` is merged here once it is stable. |
+This repo is a plain reference store with a single `master` branch, unlike the buildable repos.
 
 ## Project
 
 Part of [Original Helbreath](https://github.com/Original-Helbreath): keeping the original 1999-2005 Siementech Helbreath alive.
 Repos are named `<version>-<Part>`; other versions follow the same pattern.
-Issues are tracked on the [project board](https://github.com/Original-Helbreath/projects/1). The analysis behind everything is in
+Issues are tracked on the [project board](https://github.com/orgs/Original-Helbreath/projects/1). The analysis behind everything is in
 [2.20-Documentation](https://github.com/Original-Helbreath/2.20-Documentation).
